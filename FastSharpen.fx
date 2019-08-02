@@ -1,5 +1,5 @@
 /*
-   Fast Sharpen Shader
+   Fast Sharpen shader
    
    Copyright (C) 2019 guest(r) - guest.r@gmail.com
 
@@ -19,8 +19,7 @@
 */
 
 #include "ReShadeUI.fxh"
-#include "ReShade.fxh" 
- 
+#include "ReShade.fxh"
 
 uniform float SHARPEN < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 2.0;
@@ -32,38 +31,50 @@ uniform float CONTRAST < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 0.20;
 	ui_label = "Contrast";
 	ui_tooltip = "Ammount of haloing etc.";
-> = 0.045;
+> = 0.06;
 
-static const float2 g10 = float2( 0.35,-1.0)*ReShade::PixelSize;
-static const float2 g01 = float2(-1.0,-0.35)*ReShade::PixelSize;
-static const float2 g12 = float2(-0.35, 1.0)*ReShade::PixelSize;
-static const float2 g21 = float2( 1.0, 0.35)*ReShade::PixelSize;
+uniform float DETAILS < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.0; ui_max = 1.0;
+	ui_label = "Details";
+	ui_tooltip = "Ammount of Details.";
+> = 0.50; 
+ 
 
-float3 SHARP (float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
-{		
+static const float2 g10 = float2( 0.3333,-1.0)*ReShade::PixelSize;
+static const float2 g01 = float2(-1.0,-0.3333)*ReShade::PixelSize;
+static const float2 g12 = float2(-0.3333, 1.0)*ReShade::PixelSize;
+static const float2 g21 = float2( 1.0, 0.3333)*ReShade::PixelSize; 
+ 
+float3 SHARP(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
+{
+	// Reading the texels
+
 	float3 c10 = tex2D(ReShade::BackBuffer, uv + g10).rgb;
 	float3 c01 = tex2D(ReShade::BackBuffer, uv + g01).rgb;
-	float3 c11 = tex2D(ReShade::BackBuffer, uv      ).rgb;
 	float3 c21 = tex2D(ReShade::BackBuffer, uv + g21).rgb;
 	float3 c12 = tex2D(ReShade::BackBuffer, uv + g12).rgb;
-
-	float3 b11 = (c10+c01+c12+c21)*0.25;
+	float3 c11 = tex2D(ReShade::BackBuffer, uv      ).rgb;	
+	float3 b11 = (c10+c01+c12+c21)*0.25; 
 	
-	float contrast = lerp(2.0*CONTRAST, CONTRAST, max(max(c11.r, c11.g),c11.b));
-
+	float contrast = max(max(c11.r,c11.g),c11.b);
+	contrast = lerp(2.0*CONTRAST, CONTRAST, contrast);
+	
 	float3 mn1 = min(min(c10,c01),min(c12,c21)); mn1 = min(mn1,c11*(1.0-contrast));
 	float3 mx1 = max(max(c10,c01),max(c12,c21)); mx1 = max(mx1,c11*(1.0+contrast));
-
-	c11 = clamp(lerp(c11,b11,-SHARPEN), mn1,mx1); 
 	
-	return c11; 
-} 
+	float3 dif = pow(mx1-mn1, float3(0.75,0.75,0.75));
+	float3 sharpen = lerp(SHARPEN*DETAILS, SHARPEN, dif);
+	
+	c11 = clamp(lerp(c11,b11,-sharpen), mn1,mx1); 
+	
+	return c11;
+}
 
 technique FastSharpen
 {
-	pass sharpen
+	pass
 	{
 		VertexShader = PostProcessVS;
 		PixelShader = SHARP;
-	}	
+	}
 }
