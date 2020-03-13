@@ -92,7 +92,7 @@ uniform float glow_size < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.5; ui_max = 6.0;
 	ui_label = "Glow Size";
 	ui_tooltip = "Glow Size";
-> = 4.0;
+> = 1.0;
 
 
 
