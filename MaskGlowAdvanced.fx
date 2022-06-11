@@ -279,7 +279,7 @@ float4 PASS_SH2(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 float3 gc(float3 c)
 {
 	float mc = max(max(c.r,c.g),c.b);
-	float mg = pow(mc, (1.0/gamma_c).xxx);
+	float mg = pow(mc, 1.0/gamma_c);
 	return c * mg/(mc + 1e-8);  
 } 
  
