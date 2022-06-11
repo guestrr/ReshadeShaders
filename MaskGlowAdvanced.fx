@@ -21,6 +21,13 @@
 #include "ReShadeUI.fxh"
 #include "ReShade.fxh"
 
+
+uniform float aarange  < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.0; ui_max = 4.0; ui_step = 0.05; 
+	ui_label = "Smoothing/AA range";
+	ui_tooltip = "Smoothing/AA range";
+> = 1.0;
+
 uniform float gamma_c  < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.5; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Gamma Correct";
@@ -235,8 +242,40 @@ sampler Shinra03SL { Texture = Shinra03L; MinFilter = Linear; MagFilter = Linear
 
 float4 PASS_SH0(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 {
-	float4 color = tex2D(ReShade::BackBuffer, uv);
-	return float4 (pow(color.rgb, float3(1.0, 1.0, 1.0) * MaskGamma),1.0);
+	float x = ReShade::PixelSize.x * aarange;
+	float y = ReShade::PixelSize.y * aarange;
+	float2 dg1 = float2( x,y);  float2 dg2 = float2(-x,y);
+	float2 sd1 = dg1*0.5;     float2 sd2 = dg2*0.5;
+	float2 ddx = float2(x,0.0); float2 ddy = float2(0.0,y);
+
+	float3 c11 = tex2D(ReShade::BackBuffer, uv).xyz;
+	float3 s00 = tex2D(ReShade::BackBuffer, uv - sd1).xyz; 
+	float3 s20 = tex2D(ReShade::BackBuffer, uv - sd2).xyz; 
+	float3 s22 = tex2D(ReShade::BackBuffer, uv + sd1).xyz; 
+	float3 s02 = tex2D(ReShade::BackBuffer, uv + sd2).xyz; 
+	float3 c00 = tex2D(ReShade::BackBuffer, uv - dg1).xyz; 
+	float3 c22 = tex2D(ReShade::BackBuffer, uv + dg1).xyz; 
+	float3 c20 = tex2D(ReShade::BackBuffer, uv - dg2).xyz;
+	float3 c02 = tex2D(ReShade::BackBuffer, uv + dg2).xyz;
+	float3 c10 = tex2D(ReShade::BackBuffer, uv - ddy).xyz; 
+	float3 c21 = tex2D(ReShade::BackBuffer, uv + ddx).xyz; 
+	float3 c12 = tex2D(ReShade::BackBuffer, uv + ddy).xyz; 
+	float3 c01 = tex2D(ReShade::BackBuffer, uv - ddx).xyz;     
+	float3 dt = float3(1.0,1.0,1.0);
+
+	float d1=dot(abs(c00-c22),dt)+0.0001;
+	float d2=dot(abs(c20-c02),dt)+0.0001;
+	float hl=dot(abs(c01-c21),dt)+0.0001;
+	float vl=dot(abs(c10-c12),dt)+0.0001;
+	float m1=dot(abs(s00-s22),dt)+0.0001;
+	float m2=dot(abs(s02-s20),dt)+0.0001;
+
+	float3 t1=(hl*(c10+c12)+vl*(c01+c21)+(hl+vl)*c11)/(3.0*(hl+vl));
+	float3 t2=(d1*(c20+c02)+d2*(c00+c22)+(d1+d2)*c11)/(3.0*(d1+d2));
+	
+	float3 color =.25*(t1+t2+(m2*(s00+s22)+m1*(s02+s20))/(m1+m2));
+
+	return float4 (pow(color, float3(1.0, 1.0, 1.0) * MaskGamma),1.0);
 }
 
 
@@ -426,7 +465,7 @@ float3 Mask(float2 pos, float mx)
 		if      (pos.x < 0.3) mask    = 0.0.xxx;
 		else if (pos.x < 0.6) mask.rb = 1.0.xx;
 		else                  mask.g  = 1.0;
-		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;	
+		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;
 	}  
 	
 	// RGBX
@@ -438,27 +477,29 @@ float3 Mask(float2 pos, float mx)
 		else if (pos.x < 0.4)  mask.r = 1.0;
 		else if (pos.x < 0.7)  mask.g = 1.0;	
 		else                   mask.b = 1.0;
-		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;		
+		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;
 	}  
 
 	// 4k mask
 	else if (shadowMask == 11.0)
 	{
-		mask = float3(mc.xxx);
+		mask = float3(0.0.xxx);
 		pos.x = frac(pos.x * 0.25);
 		if      (pos.x < 0.2)  mask.r  = 1.0;
 		else if (pos.x < 0.4)  mask.rg = 1.0.xx;
 		else if (pos.x < 0.7)  mask.gb = 1.0.xx;	
-		else                   mask.b  = 1.0;	
+		else                   mask.b  = 1.0;
+		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;
 	}     
 	else if (shadowMask == 12.0)
 	{
-		mask = float3(mc.xxx);
+		mask = float3(0.0.xxx);
 		pos.x = frac(pos.x * 0.25);
 		if      (pos.x < 0.2)  mask.r  = 1.0;
 		else if (pos.x < 0.4)  mask.rb = 1.0.xx;
 		else if (pos.x < 0.7)  mask.gb = 1.0.xx;	
-		else                   mask.g  = 1.0;	
+		else                   mask.g  = 1.0;
+		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;
 	}     
  
 	return mask;
