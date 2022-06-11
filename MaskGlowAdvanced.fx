@@ -21,6 +21,12 @@
 #include "ReShadeUI.fxh"
 #include "ReShade.fxh"
 
+uniform float gamma_c  < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.5; ui_max = 2.0; ui_step = 0.05; 
+	ui_label = "Gamma Correct";
+	ui_tooltip = "Gamma Correct";
+> = 1.0;
+
 uniform float warpX  < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 0.5;
 	ui_label = "CurvatureX";
@@ -58,19 +64,19 @@ uniform int shadowMask < __UNIFORM_SLIDER_INT1
 > = 0;
 
 uniform float MaskGamma < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 1.0; ui_max = 3.0;
+	ui_min = 1.0; ui_max = 3.0; ui_step = 0.05; 
 	ui_label = "Mask Gamma";
 	ui_tooltip = "Mask Gamma";
 > = 2.2;
 
 uniform float maskstr < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -0.5; ui_max = 1.0;
+	ui_min = -0.5; ui_max = 1.0; ui_step = 0.05; 
 	ui_label = "Mask Strength masks: 0, 5-13";
 	ui_tooltip = "Mask Strength masks: 0, 5-13";
 > = 0.33;
 
 uniform float mcut < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 2.0;
+	ui_min = 0.0; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Mask Strength Low (masks: 5-10, 13)";
 	ui_tooltip = "Mask Strength Low (masks: 5-10, 13)";
 > = 1.10;
@@ -88,25 +94,25 @@ uniform int mask_layout < __UNIFORM_SLIDER_INT1
 > = 0; 
 
 uniform float maskDark < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 2.0;
+	ui_min = 0.0; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Mask Dark (masks 1-4)";
 	ui_tooltip = "Mask Dark (masks 1-4)";
 > = 0.50;
 
 uniform float maskLight < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 2.0;
+	ui_min = 0.0; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Mask Light";
 	ui_tooltip = "Mask Light";
 > = 1.50;
 
 uniform float slotmask < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 1.0;
+	ui_min = 0.0; ui_max = 1.0; ui_step = 0.05; 
 	ui_label = "Slotmask Strength Bright Pixels";
 	ui_tooltip = "Slotmask Strength Bright Pixels";
 > = 0.0;
 
 uniform float slotmask1 < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 1.0;
+	ui_min = 0.0; ui_max = 1.0; ui_step = 0.05; 
 	ui_label = "Slotmask Strength Dark Pixels";
 	ui_tooltip = "Slotmask Strength Dark Pixels";
 > = 0.0;
@@ -136,19 +142,19 @@ uniform int smasksize < __UNIFORM_SLIDER_INT1
 > = 1; 
 
 uniform float bloom < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 2.0;
+	ui_min = 0.0; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Bloom Strength";
 	ui_tooltip = "Bloom Strength";
 > = 0.0;
 
 uniform float bdist < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 3.0;
+	ui_min = 0.0; ui_max = 3.0; ui_step = 0.05; 
 	ui_label = "Bloom Distribution";
 	ui_tooltip = "Bloom Distribution";
 > = 1.0;
 
 uniform float halation < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 1.0;
+	ui_min = 0.0; ui_max = 1.0; ui_step = 0.05; 
 	ui_label = "Halation Strength";
 	ui_tooltip = "Halation Strength";
 > = 0.0;
@@ -168,44 +174,44 @@ uniform float glow_size < __UNIFORM_SLIDER_FLOAT1
 
 
 uniform float decons < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 2.0;
+	ui_min = 0.0; ui_max = 2.0; ui_step = 0.1; 
 	ui_label = "Deconvergence Strength";
 	ui_tooltip = "Deconvergence Strength";
 > = 1.0;
 
 
 uniform float deconrr < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Red Horizontal";
 	ui_tooltip = "Deconvergence Red Horizontal";
 > = 0.0;
 
 uniform float deconrg < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Green Horizontal";
 	ui_tooltip = "Deconvergence Green Horizontal";
 > = 0.0;
 
 uniform float deconrb < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Blue Horizontal";
 	ui_tooltip = "Deconvergence Blue Horizontal";
 > = 0.0;
 
 uniform float deconrry < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Red Vertical";
 	ui_tooltip = "Deconvergence Red Vertical";
 > = 0.0;
 
 uniform float deconrgy < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Green Vertical";
 	ui_tooltip = "Deconvergence Green Vertical";
 > = 0.0;
 
 uniform float deconrby < __UNIFORM_SLIDER_FLOAT1
-	ui_min = -8.0; ui_max = 8.0;
+	ui_min = -8.0; ui_max = 8.0; ui_step = 0.25; 
 	ui_label = "Deconvergence Blue Vertical";
 	ui_tooltip = "Deconvergence Blue Vertical";
 > = 0.0;
@@ -214,10 +220,10 @@ uniform float deconrby < __UNIFORM_SLIDER_FLOAT1
 texture Shinra01L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; };
 sampler Shinra01SL { Texture = Shinra01L; MinFilter = Linear; MagFilter = Linear; }; 
 
-texture Shinra02L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
+texture Shinra02L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; };
 sampler Shinra02SL { Texture = Shinra02L; MinFilter = Linear; MagFilter = Linear; }; 
 
-texture Shinra03L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA8; };
+texture Shinra03L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; };
 sampler Shinra03SL { Texture = Shinra03L; MinFilter = Linear; MagFilter = Linear; };  
 
 
@@ -270,7 +276,12 @@ float4 PASS_SH2(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	return color;
 } 
 
-
+float3 gc(float3 c)
+{
+	float mc = max(max(c.r,c.g),c.b);
+	float mg = pow(mc, (1.0/gamma_c).xxx);
+	return c * mg/(mc + 1e-8);  
+} 
  
 // Shadow mask (1-4 from PD CRT Lottes shader).
 
@@ -545,6 +556,8 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	float3 cmask = Mask(pos1, mx);
 	
 	if (mask_layout > 0.5) cmask = cmask.rbg;
+
+	color = gc(color);
  	
 	float3 orig1 = color; float3 one = float3(1.0,1.0,1.0);
 	float colmx = max(max(orig1.r,orig1.g),orig1.b)/w3;
