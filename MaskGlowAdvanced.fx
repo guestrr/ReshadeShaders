@@ -555,13 +555,9 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	
 	color*=SlotMask(pos1, mx);
 
-	float3 Bloom1 = 2.0*b11*b11;
-	Bloom1 = min(Bloom1, 0.75);
-	float bmax = max(max(Bloom1.r,Bloom1.g),Bloom1.b);
-	float pmax = 0.85;
-	Bloom1 = min(Bloom1, pmax*bmax)/pmax;
-	
-	Bloom1 = lerp(min( Bloom1, color), Bloom1, 0.5*(orig1+color));
+	float3 Bloom1 = b11;
+	Bloom1 = min(Bloom1*(orig1+color), max(0.5*(colmx + orig1 - color),0.001*Bloom1));
+	Bloom1 = 0.5*(Bloom1 + lerp(Bloom1, lerp(colmx*orig1, Bloom1, 0.5), 1.0-color)); 
 
 	Bloom1 = Bloom1 * lerp(1.0, 2.0-colmx, bdist); 
 	
