@@ -23,13 +23,13 @@
 
 
 uniform float o < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.25; ui_max = 2.0;
+	ui_min = 0.10; ui_max = 2.0; ui_step = 0.05; 
 	ui_label = "Filter Width";
 	ui_tooltip = "Filter Width";
 > = 1.0; 
 
 uniform float DBL < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 1.0; ui_max = 5.0;
+	ui_min = 1.0; ui_max = 5.0; ui_step = 0.05; 
 	ui_label = "Deblur";
 	ui_tooltip = "Deblur strength";
 > = 2.5; 

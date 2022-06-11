@@ -27,6 +27,12 @@ uniform float gamma_c  < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Gamma Correct";
 > = 1.0;
 
+uniform float brightboost  < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.5; ui_max = 2.0; ui_step = 0.01; 
+	ui_label = "Bright Boost";
+	ui_tooltip = "Bright Boost";
+> = 1.0;
+
 uniform float warpX  < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 0.5;
 	ui_label = "CurvatureX";
@@ -557,7 +563,7 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	
 	if (mask_layout > 0.5) cmask = cmask.rbg;
 
-	color = gc(color);
+	color = gc(color)*brightboost;
  	
 	float3 orig1 = color; float3 one = float3(1.0,1.0,1.0);
 	float colmx = max(max(orig1.r,orig1.g),orig1.b)/w3;
