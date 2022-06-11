@@ -1,5 +1,5 @@
 /*
-   WinUAE Mask Glow Shader (Advanced)
+   Mask Glow Shader (Advanced)
    
    Copyright (C) 2020-2022 guest(r) - guest.r@gmail.com
 
@@ -141,6 +141,12 @@ uniform float bloom < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Bloom Strength";
 > = 0.0;
 
+uniform float bdist < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.0; ui_max = 3.0;
+	ui_label = "Bloom Distribution";
+	ui_tooltip = "Bloom Distribution";
+> = 1.0;
+
 uniform float halation < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 1.0;
 	ui_label = "Halation Strength";
@@ -160,11 +166,6 @@ uniform float glow_size < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Glow Size";
 > = 2.0;
 
-uniform float wclip < __UNIFORM_SLIDER_FLOAT1
-	ui_min = 0.0; ui_max = 1.0;
-	ui_label = "Scanline preservation w. Bloom";
-	ui_tooltip = "Scanline preservation w. Bloom";
-> = 0.5;
 
 uniform float decons < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 2.0;
@@ -526,8 +527,8 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	
 	float2 coord = Warp(uv);
 	
-	float w3 = tex2D(ReShade::BackBuffer, coord).a; if (w3 == 0.0) w3 = 1.0;
-	float2 dx = float2(0.00075, 0.0);
+	float w3 = 1.0;
+	float2 dx = float2(0.001, 0.0);
 	float3 color0 = tex2D(Shinra01SL, coord - dx).rgb;
 	float3 color  = tex2D(Shinra01SL, coord).rgb;
 	float3 color1 = tex2D(Shinra01SL, coord + dx).rgb;	
@@ -546,6 +547,7 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	if (mask_layout > 0.5) cmask = cmask.rbg;
  	
 	float3 orig1 = color; float3 one = float3(1.0,1.0,1.0);
+	float colmx = max(max(orig1.r,orig1.g),orig1.b)/w3;
 	
 	color*=cmask;
 	
@@ -560,6 +562,8 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	Bloom1 = min(Bloom1, pmax*bmax)/pmax;
 	
 	Bloom1 = lerp(min( Bloom1, color), Bloom1, 0.5*(orig1+color));
+
+	Bloom1 = Bloom1 * lerp(1.0, 2.0-colmx, bdist); 
 	
 	Bloom1 = bloom*Bloom1;
 	
@@ -567,15 +571,12 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	color = color + glow*b11;
 	
 	color = min(color, 1.0); 
-
-	color = declip(color, pow(w3,wclip));
 	
 	color = min(color, lerp(min(cmask,1.0),one,0.5));
 
 	float maxb = max(max(b11.r,b11.g),b11.b);
 	maxb = sqrt(maxb);
 	float3 Bloom = b11;
-	float colmx = max(max(orig1.r,orig1.g),orig1.b)/w3;
 
 	Bloom = lerp(0.5*(Bloom + Bloom*Bloom), Bloom*Bloom, colmx);	
 	color = color + (0.75+maxb)*Bloom*(0.75 + 0.70*pow(colmx,0.33333))*lerp(1.0,w3,0.5*colmx)*lerp(one,cmask,0.35 + 0.4*maxb)*halation; 
@@ -587,7 +588,7 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	return color;
 }
 
-technique WinUaeMask
+technique MaskGlowAdvanced
 {
 	
 	pass bloom1
