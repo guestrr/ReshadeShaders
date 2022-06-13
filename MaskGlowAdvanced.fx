@@ -40,6 +40,12 @@ uniform float brightboost  < __UNIFORM_SLIDER_FLOAT1
 	ui_tooltip = "Bright Boost";
 > = 1.0;
 
+uniform float saturation  < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 0.0; ui_max = 2.5; ui_step = 0.01; 
+	ui_label = "Saturation Adjustment";
+	ui_tooltip = "Saturation Adjustment";
+> = 1.0;
+
 uniform float warpX  < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 0.5;
 	ui_label = "CurvatureX";
@@ -239,6 +245,11 @@ sampler Shinra02SL { Texture = Shinra02L; MinFilter = Linear; MagFilter = Linear
 texture Shinra03L  { Width = BUFFER_WIDTH; Height = BUFFER_HEIGHT; Format = RGBA16F; };
 sampler Shinra03SL { Texture = Shinra03L; MinFilter = Linear; MagFilter = Linear; };  
 
+float3 plant (float3 tar, float r)
+{
+	float t = max(max(tar.r,tar.g),tar.b) + 0.00001;
+	return tar * r / t;
+}
 
 float4 PASS_SH0(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 {
@@ -274,6 +285,11 @@ float4 PASS_SH0(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	float3 t2=(d1*(c20+c02)+d2*(c00+c22)+(d1+d2)*c11)/(3.0*(d1+d2));
 	
 	float3 color =.25*(t1+t2+(m2*(s00+s22)+m1*(s02+s20))/(m1+m2));
+
+	float3 scolor1 = plant(pow(color, saturation.xxx), max(max(color.r,color.g),color.b));
+	float luma = dot(color, float3(0.299, 0.587, 0.114));
+	float3 scolor2 = lerp(luma.xxx, color, saturation);
+	color = (saturation > 1.0) ? scolor1 : scolor2; 
 
 	return float4 (pow(color, float3(1.0, 1.0, 1.0) * MaskGamma),1.0);
 }
