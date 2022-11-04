@@ -90,21 +90,29 @@ uniform float MaskGamma < __UNIFORM_SLIDER_FLOAT1
 
 uniform float maskstr < __UNIFORM_SLIDER_FLOAT1
 	ui_min = -0.5; ui_max = 1.0; ui_step = 0.05; 
-	ui_label = "Mask Strength masks: 0, 5-13";
-	ui_tooltip = "Mask Strength masks: 0, 5-13";
+	ui_label = "Mask Strength masks: 0, 5-12";
+	ui_tooltip = "Mask Strength masks: 0, 5-12";
 > = 0.33;
 
 uniform float mcut < __UNIFORM_SLIDER_FLOAT1
 	ui_min = 0.0; ui_max = 2.0; ui_step = 0.05; 
-	ui_label = "Mask Strength Low (masks: 5-10, 13)";
-	ui_tooltip = "Mask Strength Low (masks: 5-10, 13)";
+	ui_label = "Mask Strength Low (masks: 0, 5-12)";
+	ui_tooltip = "Mask Strength Low (masks: 0, 5-12)";
 > = 1.10;
 
-uniform int mshift < __UNIFORM_SLIDER_INT1
-	ui_min = 0; ui_max = 8;
+uniform float maskboost < __UNIFORM_SLIDER_FLOAT1
+	ui_min = 1.0; ui_max = 3.0; ui_step = 0.05; 
+	ui_label = "CRT Mask Boost";
+	ui_tooltip = "CRT Mask Boost";
+> = 1.0;
+
+uniform float mshift <
+	ui_type = "drag";
+	ui_min = -8.0;
+	ui_max = 8.0;
+	ui_step = 0.5;
 	ui_label = "Mask Shift/Stagger";
-	ui_tooltip = "Mask Shift/Stagger";
-> = 0; 
+> = 0.0;
 
 uniform int mask_layout < __UNIFORM_SLIDER_INT1
 	ui_min = 0; ui_max = 1;
@@ -350,13 +358,15 @@ float3 Mask(float2 pos, float mx)
 {
 	float2 pos0 = pos;
 	pos.y = floor(pos.y/masksize);
-	float next_line = float(frac(pos.y*0.5) > 0.25);
-	pos0.x = pos0.x + next_line * mshift;
+
+	float stagg_lvl = 1.0; if (frac(abs(mshift)) > 0.25 && abs(mshift) > 1.25) stagg_lvl = 2.0;
+	float next_line = float(frac((pos.y/stagg_lvl)*0.5) > 0.25);
+	pos0.x = (mshift > -0.25) ? (pos0.x + next_line * floor(mshift)) : (pos0.x + floor(pos.y / stagg_lvl) * floor(abs(mshift)));
 	pos = floor(pos0/masksize);
 
 	float3 mask = float3(maskDark, maskDark, maskDark);
 	float3 one = float3(1.0.xxx);
-	float dark_compensate  = lerp(max( clamp( lerp (mcut, maskstr, mx),0.0, 1.0) - 0.4, 0.0) + 1.0, 1.0, mx);
+	float dark_compensate  = lerp(max( clamp( lerp (mcut, maskstr, mx),0.0, 1.0) - 0.5, 0.0) + 1.0, 1.0, mx);
 	float mc = 1.0 - max(maskstr, 0.0);	
 	
 	// No mask
@@ -518,8 +528,10 @@ float3 Mask(float2 pos, float mx)
 		mask = clamp(lerp( lerp(one, mask, mcut), lerp(one, mask, maskstr), mx), 0.0, 1.0) * dark_compensate;
 	}     
  
-	return mask;
+	float maskmin = min(min(mask.r,mask.g),mask.b);
+	return (mask - maskmin) * maskboost + maskmin;
 }
+
 
 float SlotMask(float2 pos, float m)
 {
@@ -618,7 +630,7 @@ float3 WMASK(float4 pos : SV_Position, float2 uv : TexCoord) : SV_Target
 	
 	float3 cmask = Mask(pos1, mx);
 	
-	if (mask_layout > 0.5) cmask = cmask.rbg;
+	if (float(mask_layout) > 0.5) cmask = cmask.rbg;
 
 	color = gc(color)*brightboost;
  	
