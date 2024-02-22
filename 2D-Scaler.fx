@@ -1,7 +1,7 @@
 /*  
    2D-Scaler for ReShade
    
-   Copyright (C) 2019-2022 guest(r) - guest.r@gmail.com
+   Copyright (C) 2019-2022 guest(r)
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
